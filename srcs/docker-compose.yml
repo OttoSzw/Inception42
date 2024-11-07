@@ -1,0 +1,66 @@
+#version: '3.8'
+
+services:
+  nginx:
+    container_name: nginx
+    volumes:
+      - WordPressbis:/var/www/html
+    networks:
+      - mynetwork
+    depends_on:
+      - wordpress
+      - mariadb
+    build: requirements/nginx/
+    env_file: .env
+    ports:
+      - "443:443"
+    restart: always
+
+  mariadb:
+    container_name: mariadb
+    networks:
+      - mynetwork
+    build: requirements/mariadb/
+    env_file: .env
+    volumes:
+      - db:/var/lib/mysql
+    restart: always
+
+  wordpress:
+    container_name: wordpress
+    env_file: .env
+    volumes:
+      - WordPressbis:/var/www/html
+    networks:
+      - mynetwork
+    build: requirements/wordpress/
+    depends_on:
+      - mariadb
+    restart: always
+    expose: 
+      - "9000"
+    ports:
+      - "9000:9000"
+
+
+networks:
+  mynetwork:
+    name : mynetwork
+    driver : bridge
+
+
+volumes:
+  db:
+    driver: local
+    driver_opts:
+      type: 'none' 
+      o: 'bind'
+      device: '/home/oszwalbe/data/db'
+
+  WordPressbis:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/home/oszwalbe/data/wordpress'
+
